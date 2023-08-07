@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15b7277d66a2d0e4793606434357f5c2, type: 3}
+  m_Name: Package2
+  m_EditorClassIdentifier: 
+  id: 3
+  icon: {fileID: 21300000, guid: fa3bb7cd4412b93439bfb61c61a988b0, type: 3}
+  selectedImage: {fileID: 21300000, guid: cebe175b8f96a6a4687a0d051b27e534, type: 3}
+  description: A neat clean package. You should take it to <>.
