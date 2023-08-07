@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Spawn1
   - Canvas
+  - NPC
+  - Dog
+  - Police
   layers:
   - Default
   - TransparentFX
