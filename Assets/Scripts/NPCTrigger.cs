@@ -7,9 +7,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class NPCTrigger : MonoBehaviour
 {
+    /// <summary>
+    /// To access the parent object
+    /// </summary>
+    public GameObject parent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,7 +30,11 @@ public class NPCTrigger : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player") //If player in range
         {
-            NPC.instance.inRange = true;
+            parent.GetComponent<NPC>().inRange = true;
+            if (parent.name == "NPC_smallchild2" && Minigame3.instance.round != 0 && SceneManager.GetActiveScene().buildIndex == 3) //If in the butchery and not the first time talking
+            {
+                parent.GetComponent<Minigame3>().isCaught = true;
+            }
         }
     }
 
@@ -34,7 +44,8 @@ public class NPCTrigger : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerExit(Collider collision)
     {
-        NPC.instance.inRange = false;
+        parent.GetComponent<NPC>().inRange = false;
+        parent.GetComponent<Minigame3>().isCaught = false;
     }
 
     // Update is called once per frame

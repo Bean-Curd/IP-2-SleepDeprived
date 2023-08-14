@@ -11,4 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BoyHouse.unity
     guid: 9c72a4393b7342643962fc0eacc0d95b
+  - enabled: 1
+    path: Assets/Scenes/Street.unity
+    guid: 8ed4d4dbcc0b2d24daf4135adbabd8ea
+  - enabled: 1
+    path: Assets/Scenes/Butchery.unity
+    guid: b562e0b027777e244968bf256b186163
   m_configObjects: {}

@@ -52,18 +52,38 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private Scene scene;
     /// <summary>
-    /// Build Index of the scene
+    /// Build Index of the previous scene
+    /// </summary>
+    private int previousBuildIndex;
+    /// <summary>
+    /// Build Index of the current scene
     /// </summary>
     private int buildIndex;
 
     /// <summary>
     /// Player spawn 1 
     /// </summary>
-    private GameObject spawn1;
+    public GameObject spawn1;
     /// <summary>
     /// Spawn 1 Location
     /// </summary>
     private Vector3 spawn1Location;
+    /// <summary>
+    /// Player spawn 2
+    /// </summary>
+    public GameObject spawn2;
+    /// <summary>
+    /// Spawn 2 Location
+    /// </summary>
+    private Vector3 spawn2Location;
+    /// <summary>
+    /// Player spawn 3
+    /// </summary>
+    public GameObject spawn3;
+    /// <summary>
+    /// Spawn 3 Location
+    /// </summary>
+    private Vector3 spawn3Location;
 
     #endregion
 
@@ -121,10 +141,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool meetSmallChild1;
     /// <summary>
-    /// Has the player spoken to smallchild1 in butcher house (Start minigame1)
-    /// </summary>
-    public bool startMinigame1;
-    /// <summary>
     /// Has the player completed minigame1: Butcher sends smallchild1 back
     /// </summary>
     public bool endMinigame1;
@@ -144,10 +160,6 @@ public class GameManager : MonoBehaviour
     /// Has the player completed minigame2: Smallchild2 agrees to follow player to butchery
     /// </summary>
     public bool endMinigame2;
-    /// <summary>
-    /// Has the player entered the butchery (Start minigame3): Boy calls for butcher, dialogue plays, decide to play hide-and-seek
-    /// </summary>
-    public bool startMinigame3;
     /// <summary>
     /// Has the player completed minigame3: Butcher stops boy, tells boy to go up
     /// </summary>
@@ -274,10 +286,20 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void SpawnPlayerOnSceneLoad(Scene currentScene, Scene nextScene)
     {
+        buildIndex = nextScene.buildIndex;
+        Debug.Log(buildIndex);
+
         spawn1 = GameObject.FindGameObjectWithTag("Spawn1");
         spawn1Location = new Vector3(spawn1.transform.position.x, spawn1.transform.position.y, spawn1.transform.position.z);
 
-        buildIndex = nextScene.buildIndex;
+        if (SceneManager.GetActiveScene().buildIndex == 2) //The street has 2 other spawns
+        {
+            spawn2 = GameObject.FindGameObjectWithTag("Spawn2");
+            spawn2Location = new Vector3(spawn2.transform.position.x, spawn2.transform.position.y, spawn2.transform.position.z);
+
+            spawn3 = GameObject.FindGameObjectWithTag("Spawn3");
+            spawn3Location = new Vector3(spawn3.transform.position.x, spawn3.transform.position.y, spawn3.transform.position.z);
+        }
 
         if (activePlayer != null) //If there is a player originally in the scene, kill it
         {
@@ -292,12 +314,40 @@ public class GameManager : MonoBehaviour
         {
             activeCanvas = Instantiate(canvasPrefab);
 
-            if (buildIndex == 1) //In specific scenes, have specific rotations
+            if (buildIndex == 3) //In specific scenes, have specific rotations
             {
                 activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 0, 0)));
             }
+            else if (buildIndex == 2) //In specific scenes, have specific rotations
+            {
+                if (previousBuildIndex == 3) //If starting from the butchery, spawn outside it
+                {
+                    activePlayer = Instantiate(playerPrefab, spawn2Location, Quaternion.Euler(new Vector3(0, 90, 0)));
+                }
+                else if (previousBuildIndex == 4) //If starting from the park, spawn outside it
+                {
+                    activePlayer = Instantiate(playerPrefab, spawn3Location, Quaternion.Euler(new Vector3(0, 270, 0)));
+                }
+                else
+                {
+                    activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 270, 0)));
+                }
+            }
+            else if (buildIndex == 1) //In specific scenes, have specific rotations
+            {
+                activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 0, 0)));
+
+                Player.instance.inDialogue = true;
+                PlayerCanvas.instance.introTime = true;
+                PlayerCanvas.instance.playerBars.SetActive(false);
+                PlayerCanvas.instance.dialogueBox.SetActive(true);
+                PlayerCanvas.instance.introL1.SetActive(true);
+
+                dayCount = 1;
+            }
 
             Debug.Log("Active player spawned: " + activePlayer);
+            previousBuildIndex = SceneManager.GetActiveScene().buildIndex;
         }
         else
         {
@@ -362,13 +412,11 @@ public class GameManager : MonoBehaviour
             leaveBoyHouse = leaveBoyHouse, 
             introToButcher = introToButcher, 
             meetSmallChild1 = meetSmallChild1, 
-            startMinigame1 = startMinigame1, 
             endMinigame1 = endMinigame1, 
             dinner1 = dinner1, 
             cutscene1 = cutscene1, 
             meetSmallChild2 = meetSmallChild2, 
             endMinigame2 = endMinigame2, 
-            startMinigame3 = startMinigame3, 
             endMinigame3 = endMinigame3, 
             dinner2 = dinner2, 
             cutscene2 = cutscene2, 
@@ -533,11 +581,19 @@ public class GameManager : MonoBehaviour
         
         if (Player.instance.inDialogue) //If player is talking, cannot walk
         {
-            Time.timeScale = 0;
+            if (PlayerCanvas.instance.minigame1.activeSelf || PlayerCanvas.instance.minigame2.activeSelf || PlayerCanvas.instance.minigame3.activeSelf) //Make minigame1/2/3 an excecption
+            {
+                
+            }
+            else
+            {
+                Time.timeScale = 0;
+            }
         }
         else if (Player.instance.inDialogue != true) //If player is not talking, enable movement
         {
             Time.timeScale = 1;
+
         }
     }
 }

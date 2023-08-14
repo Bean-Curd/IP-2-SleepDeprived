@@ -45,10 +45,6 @@ public class PlayerData : ScriptableObject //To store the player information
         /// </summary>
         public bool meetSmallChild1;
         /// <summary>
-        /// Has the player spoken to smallchild1 in butcher house (Start minigame1)
-        /// </summary>
-        public bool startMinigame1;
-        /// <summary>
         /// Has the player completed minigame1: Butcher sends smallchild1 back
         /// </summary>
         public bool endMinigame1;
@@ -68,10 +64,6 @@ public class PlayerData : ScriptableObject //To store the player information
         /// Has the player completed minigame2: Smallchild2 agrees to follow player to butchery
         /// </summary>
         public bool endMinigame2;
-        /// <summary>
-        /// Has the player entered the butchery (Start minigame3): Boy calls for butcher, dialogue plays, decide to play hide-and-seek
-        /// </summary>
-        public bool startMinigame3;
         /// <summary>
         /// Has the player completed minigame3: Butcher stops boy, tells boy to go up
         /// </summary>

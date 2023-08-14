@@ -80,9 +80,26 @@ public class Player : MonoBehaviour
     /// </summary>
     public string idNPC;
     /// <summary>
+    /// To store the name of the trigger the player is interacting with
+    /// </summary>
+    public string idTrigger;
+    /// <summary>
     /// Is the player caught
     /// </summary>
     public bool isCaught;
+
+    /// <summary>
+    /// Has minigame1 been completed yet
+    /// </summary>
+    public bool doneMinigame1;
+    /// <summary>
+    /// Did the player win minigame2
+    /// </summary>
+    public bool playerWin;
+    /// <summary>
+    /// Has minigame2 been completed yet
+    /// </summary>
+    public bool doneMinigame2;
 
     /// <summary>
     /// Set the player as an instance
@@ -136,11 +153,11 @@ public class Player : MonoBehaviour
             Debug.Log(Police.instance.escapeCount);
         }
     }
-
-    /*void OnFire()
+    
+    void OnPKey() //TO TEST STUFF
     {
-        HealthBar.instance.Damage(500);
-    }*/
+
+    }
 
     /// <summary>
     /// To pause the game
@@ -238,6 +255,77 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
+    /// What happens when player enters an object
+    /// </summary>
+    /// <param name="collision"></param>
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.name == "BoyHouseDoor") //If touching the boy's door, go out to street
+        {
+            GameManager.gameManager.leaveBoyHouse = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        }
+        else if (collision.gameObject.name == "BoyKitchenDoor")
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "boyKitchenDoor";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.boyKitchenDoor.SetActive(true);
+        }
+        else if (collision.gameObject.name == "BoyMotherDoor")
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "boyMotherDoor";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.boyMotherDoor.SetActive(true);
+        }
+        else if (collision.gameObject.name == "BoyRoomDoor")
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "boyRoomDoor";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.boyRoomDoor.SetActive(true);
+        }
+        else if (collision.gameObject.name == "ButcheryDoor" && Minigame3.instance.round == 0) //If touching the butchery door, leave to street (scene 3 to 2)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+        }
+        else if (collision.gameObject.name == "ButcheryDoor" && Minigame3.instance.round > 0) //If touching the butchery door during minigame3, say should not leave
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "butcheryDoorMinigame3";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.butcheryDoorMinigame3.SetActive(true);
+        }
+        else if (collision.gameObject.name == "FreezerDoor" && Minigame3.instance.numCaught != 2)
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "freezerDoorNormal";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.freezerDoorNormal.SetActive(true);
+        }
+        else if (collision.gameObject.name == "FreezerDoor" && Minigame3.instance.numCaught == 2)
+        {
+            inDialogue = true;
+
+            PlayerCanvas.instance.triggerText = "freezerDoorMinigame3";
+            PlayerCanvas.instance.playerBars.SetActive(false);
+            PlayerCanvas.instance.dialogueBox.SetActive(true);
+            PlayerCanvas.instance.freezerDoorMinigame3L1.SetActive(true);
+        }
+    }
+
+    /// <summary>
     /// What happens when player is on an object
     /// </summary>
     private void OnCollisionStay()
@@ -266,7 +354,7 @@ public class Player : MonoBehaviour
             jump = false; //Resets jump
         }
 
-        if (sprint) //If sprinting, decrease energy bar
+        if (sprint && PlayerCanvas.instance.playerBars.activeSelf) //If sprinting and bars are present, decrease energy bar
         {
             EnergyBar.instance.Sprint(20);
         }
@@ -289,12 +377,42 @@ public class Player : MonoBehaviour
                     if (hitInfo.collider.gameObject.GetComponent<Collectible>() != null) //If an object has the collectible script
                     {
                         //Debug.Log(hitInfo.collider.gameObject.tag);
-
+                        
                         var collectScript = hitInfo.collider.gameObject.GetComponent<Collectible>();
                         var item = collectScript.item;
                         Debug.Log(item);
-                        GameManager.gameManager.ItemCollected(item);
-                        Destroy(hitInfo.collider.gameObject);
+
+                        int meatNum = 0;
+
+                        foreach (var itemInInventory in GameManager.gameManager.Items)
+                        {
+                            if (itemInInventory.id == 1)
+                            {
+                                Debug.Log(meatNum);
+                                meatNum += 1;
+                            }
+                        }
+
+                        if (meatNum == 3)
+                        {
+                            inDialogue = true;
+
+                            PlayerCanvas.instance.triggerText = "meatLimit";
+                            PlayerCanvas.instance.playerBars.SetActive(false);
+                            PlayerCanvas.instance.dialogueBox.SetActive(true);
+                            PlayerCanvas.instance.meatLimit.SetActive(true);
+                        }
+                        else
+                        {
+                            GameManager.gameManager.ItemCollected(item);
+
+                            if (item.id != 1)
+                            {
+                                Destroy(hitInfo.collider.gameObject);
+                            }
+                            interact = false;
+                        }
+
                     }
                     else if (hitInfo.collider.gameObject.GetComponent<Dog>() != null) //If object is a dog
                     {
@@ -323,15 +441,71 @@ public class Player : MonoBehaviour
 
                             if (hitInfo.collider.gameObject.tag == "NPC")
                             {
-                                //NPC.instance.isInteracting = true;
                                 idNPC = hitInfo.collider.gameObject.GetComponent<NPC>().idNPC;
 
-                                if (idNPC == "smallchild1" && SceneManager.GetActiveScene().buildIndex != 3) //If talking to the smallchild1 outside the butchery
+
+                                if (idNPC == "neighbour1" && GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true) //If talking to neighbour1 on the first day before meeting the butcher
+                                {
+                                    PlayerCanvas.instance.convoNPC = "neighbour1askfood";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.neighbour1askfoodL1.SetActive(true);
+                                }
+                                else if (idNPC == "neighbour2" && GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true) //If talking to neighbour2 on the first day before meeting the butcher
+                                {
+                                    PlayerCanvas.instance.convoNPC = "neighbour2askfood";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.neighbour2askfoodL1.SetActive(true);
+                                }
+                                else if (idNPC == "butcher" && GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true) //If talking to the butcher on the first day to ask for food
+                                {
+                                    PlayerCanvas.instance.convoNPC = "butcheraskfood";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.butcheraskfoodL1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild1" && SceneManager.GetActiveScene().buildIndex != 3) //If talking to smallchild1 outside the butchery
                                 {
                                     PlayerCanvas.instance.convoNPC = "smallchild1meet";
                                     PlayerCanvas.instance.playerBars.SetActive(false);
                                     PlayerCanvas.instance.dialogueBox.SetActive(true);
                                     PlayerCanvas.instance.smallchild1T1L1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild1" && doneMinigame1 != true) //If talking to smallchild1 in the butchery
+                                {
+                                    PlayerCanvas.instance.convoNPC = "startminigame1";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.startminigame1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild2" && doneMinigame2 != true && SceneManager.GetActiveScene().buildIndex == 4) //If talking to smallchild2 before minigame2 is done
+                                {
+                                    PlayerCanvas.instance.convoNPC = "startminigame2";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.startminigame2L1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild2" && Minigame3.instance.isCaught != true && SceneManager.GetActiveScene().buildIndex == 3) //If talking to smallchild2 in the butchery
+                                {
+                                    PlayerCanvas.instance.convoNPC = "startminigame3";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.startminigame3L1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild2" && Minigame3.instance.isCaught && SceneManager.GetActiveScene().buildIndex == 3 && Minigame3.instance.numCaught == 0) //When smallchild2 is caught for the first time
+                                {
+                                    PlayerCanvas.instance.convoNPC = "minigame3Caught1";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.minigame3Caught1L1.SetActive(true);
+                                }
+                                else if (idNPC == "smallchild2" && Minigame3.instance.isCaught && SceneManager.GetActiveScene().buildIndex == 3 && Minigame3.instance.numCaught == 1) //When smallchild2 is caught for the second time
+                                {
+                                    PlayerCanvas.instance.convoNPC = "minigame3Caught2";
+                                    PlayerCanvas.instance.playerBars.SetActive(false);
+                                    PlayerCanvas.instance.dialogueBox.SetActive(true);
+                                    PlayerCanvas.instance.minigame3Caught2L1.SetActive(true);
                                 }
                             }
                         }

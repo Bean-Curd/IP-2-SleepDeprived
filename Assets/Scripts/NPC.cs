@@ -30,6 +30,10 @@ public class NPC : MonoBehaviour
     /// Can that NPC follow the player
     /// </summary>
     public bool canFollow;
+    /// <summary>
+    /// Can NPC continue walking
+    /// </summary>
+    public bool resumeNormal;
 
     /// <summary>
     /// Current state of the NPC
@@ -63,9 +67,12 @@ public class NPC : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        SpawnCheck();
+
         inRange = false;
         isInteracting = false;
         canFollow = false;
+        resumeNormal = false;
 
         currentState = "Normal";
         nextState = currentState;
@@ -80,13 +87,13 @@ public class NPC : MonoBehaviour
         Debug.Log("Following");
         canFollow = false;
 
-        while (SceneManager.GetActiveScene().buildIndex == 1/*2*/ || SceneManager.GetActiveScene().buildIndex == 4)
+        while (SceneManager.GetActiveScene().buildIndex == 2 || SceneManager.GetActiveScene().buildIndex == 4)
         {
             if (followPlayer != null && currentState == "Follow")
             {
                 agentComponent.SetDestination(followPlayer.position);
             }
-            else if (SceneManager.GetActiveScene().buildIndex != 1/*2*/ && SceneManager.GetActiveScene().buildIndex != 4) //Destroy if player left the street or park 
+            else if (SceneManager.GetActiveScene().buildIndex != 2 && SceneManager.GetActiveScene().buildIndex != 4) //Destroy if player left the street or park 
             {
                 Destroy(gameObject);
             }
@@ -100,17 +107,20 @@ public class NPC : MonoBehaviour
     IEnumerator Talking()
     {
         Debug.Log("Talking");
+        isInteracting = false;
 
         while (Player.instance.inDialogue)
         {
             if (canFollow)
             {
+                Debug.Log("here");
                 nextState = "Follow";
                 Player.instance.inDialogue = false;
             }
-            else
+            else if (resumeNormal)
             {
                 nextState = "Normal";
+                Player.instance.inDialogue = false;
             }
             yield return new WaitForEndOfFrame();
         }
@@ -123,6 +133,7 @@ public class NPC : MonoBehaviour
     IEnumerator Normal()
     {
         Debug.Log("Normal");
+        resumeNormal = false;
 
         while (isInteracting != true)
         {
@@ -146,6 +157,26 @@ public class NPC : MonoBehaviour
     private void SwitchState()
     {
         StartCoroutine(currentState);
+    }
+
+    /// <summary>
+    /// To check how to spawn the npc
+    /// </summary>
+    private void SpawnCheck()
+    {
+        if (idNPC == "butcher")
+        {
+            if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true && SceneManager.GetActiveScene().buildIndex == 2) //Butcher location on the first meeting on the street
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed outside the butchery
+                gameObject.transform.position = place.transform.position;
+            }
+            else if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true && SceneManager.GetActiveScene().buildIndex == 3) //Butcher location on the first meeting in the butchery
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed at the counter
+                gameObject.transform.position = place.transform.position;
+            }
+        }
     }
 
     // Update is called once per frame

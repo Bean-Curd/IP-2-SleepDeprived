@@ -9,6 +9,8 @@ TagManager:
   - NPC
   - Dog
   - Police
+  - Spawn2
+  - Spawn3
   layers:
   - Default
   - TransparentFX

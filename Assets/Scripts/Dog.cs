@@ -118,13 +118,13 @@ public class Dog : MonoBehaviour
         agentComponent.speed = 1.5f;
         agentComponent.stoppingDistance = 1.5f;
 
-        while (SceneManager.GetActiveScene().buildIndex == 1/*4*/)
+        while (SceneManager.GetActiveScene().buildIndex == 4)
         {
             if (followPlayer != null && currentState == "Fed")
             {
                 agentComponent.SetDestination(followPlayer.position);
             }
-            else if (SceneManager.GetActiveScene().buildIndex != 1/*4*/) //Destroy if player left the park 
+            else if (SceneManager.GetActiveScene().buildIndex != 4) //Destroy if player left the park 
             {
                 Destroy(gameObject);
             }

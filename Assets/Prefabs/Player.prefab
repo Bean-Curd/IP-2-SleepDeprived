@@ -297,6 +297,7 @@ GameObject:
   - component: {fileID: 9182689012173793713}
   - component: {fileID: 2097333878189276833}
   - component: {fileID: 2097333878189276834}
+  - component: {fileID: 6705232991647737621}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -367,8 +368,11 @@ MonoBehaviour:
   sprint: 0
   head: {fileID: 2097333876961695938}
   InteractionDistance: 1
+  interactInRange: 0
+  selectedObject: {fileID: 0}
   inDialogue: 0
   idNPC: 
+  isCaught: 0
 --- !u!114 &2097333878189276834
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,3 +404,16 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
+--- !u!114 &6705232991647737621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344167684530787551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7d3e5f1d36f25a47ad2f382379061d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  skybox: {fileID: 2100000, guid: e1fb2fc8ab5c9234a8aeec29947f0c35, type: 2}
