@@ -149,7 +149,14 @@ public class Dog : MonoBehaviour
                 if (isTouching && cooldown != true) //If Dog touched the player, stop for a moment, deal damage
                 {
                     agentComponent.speed = 0;
-                    HealthBar.instance.Damage(2000);
+                    if (PlayerCanvas.instance.minigame2.activeSelf) //So the dogs cannot damage the player during minigame2
+                    {
+
+                    }
+                    else
+                    {
+                        HealthBar.instance.Damage(2000);
+                    }
                     cooldown = true;
                 }
             }

@@ -15,4 +15,4 @@ MonoBehaviour:
   id: 4
   icon: {fileID: 21300000, guid: 18a88436102f51e4b8741f0f69779073, type: 3}
   selectedImage: {fileID: 21300000, guid: 50994f3fd69826e419a9a6c29250cedd, type: 3}
-  description: A standard letter. <> said you should bring it to <>.
+  description: A standard letter. You should bring it to a neighbour.

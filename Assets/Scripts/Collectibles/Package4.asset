@@ -15,4 +15,4 @@ MonoBehaviour:
   id: 5
   icon: {fileID: 21300000, guid: 30c3c85e8293978428c8e9537b6c0a62, type: 3}
   selectedImage: {fileID: 21300000, guid: 0d7ef162fa1277f4f9a7f73650d728d4, type: 3}
-  description: A messy postage bag. <> said to take it to <>.
+  description: A messy postage bag. Mr. Butcher said to take it to a neighbour.

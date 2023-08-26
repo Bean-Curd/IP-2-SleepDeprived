@@ -38,7 +38,7 @@ public class NPC : MonoBehaviour
     /// <summary>
     /// Current state of the NPC
     /// </summary>
-    private string currentState;
+    public string currentState;
     /// <summary>
     /// Next state for the NPC to change to
     /// </summary>
@@ -74,9 +74,18 @@ public class NPC : MonoBehaviour
         canFollow = false;
         resumeNormal = false;
 
-        currentState = "Normal";
-        nextState = currentState;
-        SwitchState();
+        if (idNPC == "smallchild2" && Player.instance.child2Follow)
+        {
+            currentState = "Follow";
+            nextState = currentState;
+            SwitchState();
+        }
+        else
+        {
+            currentState = "Normal";
+            nextState = currentState;
+            SwitchState();
+        }
     }
 
     /// <summary>
@@ -84,18 +93,20 @@ public class NPC : MonoBehaviour
     /// </summary>
     IEnumerator Follow()
     {
-        Debug.Log("Following");
+        Debug.Log("Following" + idNPC);
+        isInteracting = false;
         canFollow = false;
+
+        if (idNPC == "smallchild2" && Player.instance.child2Follow)
+        {
+            Player.instance.child2Follow = false;
+        }
 
         while (SceneManager.GetActiveScene().buildIndex == 2 || SceneManager.GetActiveScene().buildIndex == 4)
         {
             if (followPlayer != null && currentState == "Follow")
             {
                 agentComponent.SetDestination(followPlayer.position);
-            }
-            else if (SceneManager.GetActiveScene().buildIndex != 2 && SceneManager.GetActiveScene().buildIndex != 4) //Destroy if player left the street or park 
-            {
-                Destroy(gameObject);
             }
             yield return new WaitForEndOfFrame();
         }
@@ -106,18 +117,17 @@ public class NPC : MonoBehaviour
     /// </summary>
     IEnumerator Talking()
     {
-        Debug.Log("Talking");
+        Debug.Log("Talking" + idNPC);
         isInteracting = false;
 
         while (Player.instance.inDialogue)
         {
-            if (canFollow)
+            if (canFollow && currentState == "Talking")
             {
-                Debug.Log("here");
                 nextState = "Follow";
                 Player.instance.inDialogue = false;
             }
-            else if (resumeNormal)
+            else if (resumeNormal && currentState == "Talking")
             {
                 nextState = "Normal";
                 Player.instance.inDialogue = false;
@@ -132,7 +142,7 @@ public class NPC : MonoBehaviour
     /// </summary>
     IEnumerator Normal()
     {
-        Debug.Log("Normal");
+        Debug.Log("Normal" + idNPC);
         resumeNormal = false;
 
         while (isInteracting != true)
@@ -141,7 +151,7 @@ public class NPC : MonoBehaviour
             {
                 // Walk stuff here
             }
-            else if (Player.instance.inDialogue) //Change state when player clicks on NPC
+            else if (Player.instance.inDialogue && currentState != "Follow") //Change state when player clicks on NPC
             {
                 nextState = "Talking";
                 isInteracting = true;
@@ -162,7 +172,7 @@ public class NPC : MonoBehaviour
     /// <summary>
     /// To check how to spawn the npc
     /// </summary>
-    private void SpawnCheck()
+    public void SpawnCheck()
     {
         if (idNPC == "butcher")
         {
@@ -170,10 +180,302 @@ public class NPC : MonoBehaviour
             {
                 GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed outside the butchery
                 gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
             }
             else if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true && SceneManager.GetActiveScene().buildIndex == 3) //Butcher location on the first meeting in the butchery
             {
                 GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed at the counter
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 1 && Player.instance.doneMinigame1 && GameManager.gameManager.endMinigame1 != true && SceneManager.GetActiveScene().buildIndex == 3) //Butcher location in the butchery after completing minigame1
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn2"); //Placed above at the stairs
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.endMinigame1 && PlayerCanvas.instance.triggerText == "butcheryEntranceTrigger" && SceneManager.GetActiveScene().buildIndex == 3) //Butcher location in the butchery after finishing minigame1
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn3"); //Placed at the entrance
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 60, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.meetSmallChild2 != true && SceneManager.GetActiveScene().buildIndex == 3) //If have not met smallchild2 on day2 in the butchery
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed at the counter
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame3 != true && Minigame3.instance.numCaught == 2 && SceneManager.GetActiveScene().buildIndex == 3) //To show the butcher at the end of minigame3
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn4"); //Placed inside, near the bottom of the stairs
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame3 && PlayerCanvas.instance.cutsceneDay2.activeSelf != true && SceneManager.GetActiveScene().buildIndex == 3) //Butcher location in the butchery after completing minigame3
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("NPC_butcher_spawn2"); //Placed above at the stairs
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+                gameObject.GetComponent<NavMeshAgent>().enabled = true;
+            }
+            else if (PlayerCanvas.instance.cutsceneDay2.activeSelf && SceneManager.GetActiveScene().buildIndex == 3) //For day3 in the butchery
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed at the counter
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+                gameObject.GetComponent<NavMeshAgent>().enabled = true;
+            }
+            else if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 3) //For day3 in the butchery
+            {
+                GameObject place = GameObject.Find("NPC_butcher_spawn1"); //Placed at the counter
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 4 && PlayerCanvas.instance.overlay5.activeSelf != true && SceneManager.GetActiveScene().buildIndex == 3) //For day4 in the butchery
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("NPC_butcher_spawn5"); //Placed at the kitchen counter
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
+                gameObject.transform.position = place.transform.position;
+                gameObject.GetComponent<NavMeshAgent>().enabled = true;
+            }
+            else if ((GameManager.gameManager.dayCount == 5 || PlayerCanvas.instance.overlay5.activeSelf) && SceneManager.GetActiveScene().buildIndex == 3) //For day5 in the butchery
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("NPC_butcher_spawn6"); //Placed at the sofa
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(-90, 0, 180));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "smallchild1")
+        {
+            if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher && SceneManager.GetActiveScene().buildIndex == 2) //Smallchild1 location on the first meeting on the street
+            {
+                GameObject place = GameObject.Find("NPC_smallchild1_spawn1"); //Placed outside 
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.meetSmallChild1 && GameManager.gameManager.endMinigame1 != true && SceneManager.GetActiveScene().buildIndex == 3) //Smallchild1 location after heading to the butchery
+            {
+                GameObject place = GameObject.Find("NPC_smallchild1_spawn1"); //Placed on top
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "smallchild2")
+        {
+            if (GameManager.gameManager.entered && SceneManager.GetActiveScene().buildIndex != 3)
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame2 != true && SceneManager.GetActiveScene().buildIndex == 4) //Smallchild2 location on the first meeting in the park
+            {
+                GameObject place = GameObject.Find("NPC_smallchild2_spawn1"); //Placed outside 
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame2 && GameManager.gameManager.endMinigame3 != true && SceneManager.GetActiveScene().buildIndex == 2) //Smallchild2 location when following in the street
+            {
+                GameObject place = GameObject.Find("Child2FollowStreet"); //Placed near the player spawn
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+                Player.instance.child2Follow = true;
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame2 && GameManager.gameManager.endMinigame3 != true && SceneManager.GetActiveScene().buildIndex == 4) //Smallchild2 location when following in the park
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("Child2FollowPark"); //Placed near the player spawn
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+                Player.instance.child2Follow = true;
+                gameObject.GetComponent<NavMeshAgent>().enabled = true;
+            }
+            else if (GameManager.gameManager.dayCount == 2 && GameManager.gameManager.endMinigame2 && GameManager.gameManager.endMinigame3 != true && SceneManager.GetActiveScene().buildIndex == 3) //Smallchild2 location in the butchery 
+            {
+                GameManager.gameManager.entered = true;
+                GameObject place = GameObject.Find("NPC_smallchild2_spawn1"); //Placed outside 
+                gameObject.transform.position = place.transform.position;
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "neighbour1")
+        {
+            if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher != true && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour1 location on the first meeting on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour1_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour1 location on the second day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour1_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour1 location on the third day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour1_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 4 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour1 location on the fourth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour1_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 5 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour1 location on the fifth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour1_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "neighbour2")
+        {
+            if (GameManager.gameManager.dayCount == 1 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour2 location on the first meeting on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour2 location on the second day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && SceneManager.GetActiveScene().buildIndex == 4) //Neighbour2 location on the second day in the park
+            {
+                gameObject.GetComponent<NavMeshAgent>().enabled = false;
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.GetComponent<NavMeshAgent>().enabled = true;
+            }
+            else if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour2 location on the third day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 4 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour2 location on the fourth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 5 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour2 location on the fifth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour2_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 90, 0));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "neighbour3")
+        {
+            if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour3 location on the first meeting on the street (after butcher)
+            {
+                GameObject place = GameObject.Find("NPC_neighbour3_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+            }
+            else if (GameManager.gameManager.dayCount == 2 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour3 location on the second day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour3_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+            }
+            else if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour3 location on the third day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour3_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+            }
+            else if (GameManager.gameManager.dayCount == 4 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour3 location on the fourth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour3_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+            }
+            else 
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "neighbour4")
+        {
+            if (GameManager.gameManager.dayCount == 1 && GameManager.gameManager.introToButcher && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour4 location on the first meeting on the street (after butcher)
+            {
+                GameObject place = GameObject.Find("NPC_neighbour4_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 2 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour4 location on the second day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour4_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour4 location on the third day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour4_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 4 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour4 location on the fourth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour4_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else if (GameManager.gameManager.dayCount == 5 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour4 location on the fifth day on the street
+            {
+                GameObject place = GameObject.Find("NPC_neighbour4_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
+                gameObject.transform.position = place.transform.position;
+            }
+        }
+        else if (idNPC == "neighbour5")
+        {
+            if (GameManager.gameManager.dayCount == 3 && SceneManager.GetActiveScene().buildIndex == 2) //Neighbour5 location on the street when delivering packages on the 3rd day
+            {
+                GameObject place = GameObject.Find("NPC_neighbour5_spawn1"); //Placed outside
+                gameObject.transform.position = place.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 270, 0));
+            }
+            else
+            {
+                GameObject place = GameObject.Find("VoidSpawn"); //To hide it
                 gameObject.transform.position = place.transform.position;
             }
         }
@@ -186,11 +488,25 @@ public class NPC : MonoBehaviour
 
         if (GameManager.gameManager.pause || GameManager.gameManager.dead || Player.instance.inDialogue)
         {
-            agentComponent.isStopped = true;
+            if (idNPC == "butcher" && GameManager.gameManager.dayCount == 5)
+            {
+
+            }
+            else if ((idNPC != "butcher" && GameManager.gameManager.dayCount != 5))
+            {
+                agentComponent.isStopped = true;
+            }
         }
         else
         {
-            agentComponent.isStopped = false;
+            if (idNPC == "butcher" && GameManager.gameManager.dayCount == 5)
+            {
+
+            }
+            else if ((idNPC != "butcher" && GameManager.gameManager.dayCount != 5))
+            {
+                agentComponent.isStopped = false;
+            }
         }
 
         if (nextState != currentState)

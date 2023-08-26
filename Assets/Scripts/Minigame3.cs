@@ -98,6 +98,7 @@ public class Minigame3 : MonoBehaviour
             else if (numCaught == 1) 
             {
                 gameObject.transform.position = place2.transform.position;
+                gameObject.transform.rotation = Quaternion.Euler(new Vector3(0, 180, 0));
             }
             else if (numCaught == 2)
             {

@@ -15,4 +15,4 @@ MonoBehaviour:
   id: 2
   icon: {fileID: 21300000, guid: 7c027b0ce0698c14993203981e6a7258, type: 3}
   selectedImage: {fileID: 21300000, guid: 712a65b1217cdd144acc05b6a639bb92, type: 3}
-  description: A hefty box. <> told you to deliver it to <>.
+  description: A hefty box. Mr. Butcher told you to deliver it to a neighbour.

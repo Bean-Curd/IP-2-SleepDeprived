@@ -11,7 +11,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI; 
 using TMPro;
 using System;
-using static UnityEditor.Progress;
 using UnityEngine.EventSystems;
 using UnityEngine.AI;
 using static PlayerData;
@@ -22,11 +21,6 @@ public class GameManager : MonoBehaviour
     /// Set the game manager as an instance
     /// </summary>
     public static GameManager gameManager { get; private set; }
-
-    /// <summary>
-    /// Where the saved data is stored
-    /// </summary>
-    public string SaveDataLocation;
 
     #region Spawn Related Variables
 
@@ -94,7 +88,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public int dayCount;
     /// <summary>
-    /// Player health to carry between scenes
+    /// Player health to carry between scenes (*Changing it does not change the player's health)
     /// </summary>
     public int playerHealth;
 
@@ -114,6 +108,30 @@ public class GameManager : MonoBehaviour
     /// What to do when player is in inventory
     /// </summary>
     public bool inventory;
+    /// <summary>
+    /// Did the player enter the butchery after completing minigame2
+    /// </summary>
+    public bool entered;
+    /// <summary>
+    /// To not add the packages to the inventory more than once
+    /// </summary>
+    public bool addPackagesOnce;
+    /// <summary>
+    /// To not add the bottles to the inventory more than once
+    /// </summary>
+    public bool addBottlesOnce;
+    /// <summary>
+    /// So the player mixes the pills and the water once
+    /// </summary>
+    public bool mixOnce;
+    /// <summary>
+    /// To check if the player returning to the butchery after giving the butcher the glass will trigger
+    /// </summary>
+    public bool canComeBack;
+    /// <summary>
+    /// Is the player returning to the butchery after giving the butcher the glass
+    /// </summary>
+    public bool comeBack;
 
     /// <summary>
     /// To store items Player collects
@@ -213,14 +231,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public bool drink3;
     /// <summary>
-    /// Has the player delivered the 4th drink
-    /// </summary>
-    public bool drink4;
-    /// <summary>
-    /// Has the player delivered the 5th drink
-    /// </summary>
-    public bool drink5;
-    /// <summary>
     /// Has the player returned to the butchery after delivering all the water: Boy eating day4 dinner screen 
     /// </summary>
     public bool dinner4;
@@ -236,10 +246,6 @@ public class GameManager : MonoBehaviour
     /// Has the player obtained the glass (glass in inventory)
     /// </summary>
     public bool glass;
-    /// <summary>
-    /// Has the player given the glass+pills to the butcher: Boy leaves butcher to rest
-    /// </summary>
-    public bool gaveButcher;
     /// <summary>
     /// Has the player interacted with the butcher again afterwards: Long final cutscene :/ (If true, delete save file)
     /// </summary>
@@ -287,12 +293,16 @@ public class GameManager : MonoBehaviour
     private void SpawnPlayerOnSceneLoad(Scene currentScene, Scene nextScene)
     {
         buildIndex = nextScene.buildIndex;
-        Debug.Log(buildIndex);
 
         spawn1 = GameObject.FindGameObjectWithTag("Spawn1");
         spawn1Location = new Vector3(spawn1.transform.position.x, spawn1.transform.position.y, spawn1.transform.position.z);
 
-        if (SceneManager.GetActiveScene().buildIndex == 2) //The street has 2 other spawns
+        if (SceneManager.GetActiveScene().buildIndex == 3) //The butchery has 1 other spawn
+        {
+            spawn2 = GameObject.FindGameObjectWithTag("Spawn2");
+            spawn2Location = new Vector3(spawn2.transform.position.x, spawn2.transform.position.y, spawn2.transform.position.z);
+        }
+        else if (SceneManager.GetActiveScene().buildIndex == 2) //The street has 2 other spawns
         {
             spawn2 = GameObject.FindGameObjectWithTag("Spawn2");
             spawn2Location = new Vector3(spawn2.transform.position.x, spawn2.transform.position.y, spawn2.transform.position.z);
@@ -301,7 +311,7 @@ public class GameManager : MonoBehaviour
             spawn3Location = new Vector3(spawn3.transform.position.x, spawn3.transform.position.y, spawn3.transform.position.z);
         }
 
-        if (activePlayer != null) //If there is a player originally in the scene, kill it
+        if (activePlayer != null || activeCanvas != null) //If there is a player originally in the scene, kill it
         {
             Destroy(activePlayer);
             Destroy(activeCanvas);
@@ -314,7 +324,11 @@ public class GameManager : MonoBehaviour
         {
             activeCanvas = Instantiate(canvasPrefab);
 
-            if (buildIndex == 3) //In specific scenes, have specific rotations
+            if (buildIndex == 4) //In specific scenes, have specific rotations
+            {
+                activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 90, 0)));
+            }
+            else if (buildIndex == 3) //In specific scenes, have specific rotations
             {
                 activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 0, 0)));
             }
@@ -328,9 +342,17 @@ public class GameManager : MonoBehaviour
                 {
                     activePlayer = Instantiate(playerPrefab, spawn3Location, Quaternion.Euler(new Vector3(0, 270, 0)));
                 }
+                else if (dayCount == 3)
+                {
+                    activePlayer = Instantiate(playerPrefab, spawn2Location, Quaternion.Euler(new Vector3(0, 90, 0)));
+                }
+                else if (dayCount == 4)
+                {
+                    activePlayer = Instantiate(playerPrefab, spawn2Location, Quaternion.Euler(new Vector3(0, 90, 0)));
+                }
                 else
                 {
-                    activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 270, 0)));
+                    activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 180, 0)));
                 }
             }
             else if (buildIndex == 1) //In specific scenes, have specific rotations
@@ -348,6 +370,40 @@ public class GameManager : MonoBehaviour
 
             Debug.Log("Active player spawned: " + activePlayer);
             previousBuildIndex = SceneManager.GetActiveScene().buildIndex;
+
+            if ((dayCount == 3 || dayCount == 4) && SceneManager.GetActiveScene().buildIndex == 2) //Spawn the police on day3 + 4
+            {
+                GameObject police1 = GameObject.Find("Police1");
+                if (dayCount == 3 && police1 != null)
+                {
+                    police1.SetActive(true);
+                    GameObject police2 = GameObject.Find("Police2");
+                    police2.SetActive(false);
+                    GameObject police3 = GameObject.Find("Police3");
+                    police3.SetActive(false);
+                }
+                else if (dayCount == 4 && police1 != null)
+                {
+                    police1.SetActive(true);
+                    GameObject police2 = GameObject.Find("Police2");
+                    police2.SetActive(true);
+                    GameObject police3 = GameObject.Find("Police3");
+                    police3.SetActive(true);
+                }
+            }
+            else
+            {
+                GameObject police1 = GameObject.Find("Police1");
+
+                if (police1 != null)
+                {
+                    police1.SetActive(false);
+                    GameObject police2 = GameObject.Find("Police2");
+                    police2.SetActive(false);
+                    GameObject police3 = GameObject.Find("Police3");
+                    police3.SetActive(false);
+                }
+            }
         }
         else
         {
@@ -388,16 +444,12 @@ public class GameManager : MonoBehaviour
 
         activeCanvas = Instantiate(canvasPrefab);
 
-        if (buildIndex == 1) //In specific scenes, have specific rotations/resets
-        {
-            activePlayer = Instantiate(playerPrefab, spawn1Location, Quaternion.Euler(new Vector3(0, 0, 0)));
-        }
-
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); //Reload the scene
 
         Debug.Log("Active player spawned: " + activePlayer);
     }
 
+    /* //No time cher, sorry :(
     /// <summary>
     /// Convert PlayerSaveData to Json
     /// </summary>
@@ -430,13 +482,10 @@ public class GameManager : MonoBehaviour
             drink1 = drink1,
             drink2 = drink2,
             drink3 = drink3,
-            drink4 = drink4,
-            drink5 = drink5,
             dinner4 = dinner4,
             cutscene4 = cutscene4,
             pillBottle = pillBottle,
             glass = glass,
-            gaveButcher = gaveButcher,
         };
         return JsonUtility.ToJson(data);
     }
@@ -470,12 +519,49 @@ public class GameManager : MonoBehaviour
         string json = System.IO.File.ReadAllText(SaveDataLocation);
         return ConvertJsonToClass(json);
     }
+    */
+
+    /// <summary>
+    /// To reset the game when leaving to the start menu
+    /// </summary>
+    public void ResetGame()
+    {
+        Items.Clear(); //Clear inventory
+
+        buildIndex = 0; 
+        dayCount = 0; 
+        playerHealth = 100;
+        leaveBoyHouse = false; 
+        introToButcher = false;
+        meetSmallChild1 = false;
+        endMinigame1 = false;
+        dinner1 = false;
+        cutscene1 = false;
+        meetSmallChild2 = false;
+        endMinigame2 = false;
+        endMinigame3 = false;
+        dinner2 = false;
+        cutscene2 = false;
+        neighbour1 = false;
+        neighbour2 = false;
+        neighbour3 = false;
+        neighbour4 = false;
+        neighbour5 = false;
+        dinner3 = false;
+        cutscene3 = false;
+        drink1 = false;
+        drink2 = false;
+        drink3 = false;
+        dinner4 = false;
+        cutscene4 = false;
+        pillBottle = false;
+        glass = false;
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        SaveDataLocation = Application.persistentDataPath + "/playerData.json";
-
+        playerHealth = 10000;
         pause = false;
         dead = false;
         respawn = false;
@@ -579,21 +665,48 @@ public class GameManager : MonoBehaviour
             Player.instance.rotationSpeed = 0.25f;
         }
         
-        if (Player.instance.inDialogue) //If player is talking, cannot walk
+        if (Player.instance.inDialogue && SceneManager.GetActiveScene().buildIndex != 0) //If player is talking, cannot walk
         {
-            if (PlayerCanvas.instance.minigame1.activeSelf || PlayerCanvas.instance.minigame2.activeSelf || PlayerCanvas.instance.minigame3.activeSelf) //Make minigame1/2/3 an excecption
+            if (PlayerCanvas.instance.minigame1.activeSelf || PlayerCanvas.instance.minigame2.activeSelf || PlayerCanvas.instance.minigame3.activeSelf || PlayerCanvas.instance.dinner1.activeSelf || PlayerCanvas.instance.cutsceneDay1.activeSelf || PlayerCanvas.instance.dinner2.activeSelf || PlayerCanvas.instance.cutsceneDay2.activeSelf || PlayerCanvas.instance.dinner3.activeSelf || PlayerCanvas.instance.cutsceneDay3.activeSelf || PlayerCanvas.instance.dinner4.activeSelf || PlayerCanvas.instance.cutsceneDay4.activeSelf || finalCutscene) //Make an excecption for some cutscenes/events
             {
                 
             }
             else
             {
                 Time.timeScale = 0;
+                if (EnergyBar.instance.currentEnergy == 0)
+                {
+                    EnergyBar.instance.currentEnergy += 1000; //Add 10 so it doesn't stop
+                    EnergyBar.instance.energyBar.value = EnergyBar.instance.currentEnergy;
+                }
             }
         }
-        else if (Player.instance.inDialogue != true) //If player is not talking, enable movement
+        else if (Player.instance.inDialogue != true && pause != true) //If player is not talking, enable movement
         {
             Time.timeScale = 1;
+        }
 
+        //If multiple conditions are fufilled, can progess on: for days 3/4/5
+        if (neighbour1 && neighbour2 && neighbour3 && neighbour4 && neighbour5)
+        {
+            Player.instance.deliverDone = true;
+        }
+        if (drink1 && drink2 && drink3)
+        {
+            Player.instance.bottlesDone = true;
+        }
+        if (pillBottle && glass)
+        {
+            Player.instance.mixtureDone = true;
+
+            if (mixOnce != true)
+            {
+                ItemUsed(Player.instance.pillBottleNormal);
+                ItemUsed(Player.instance.glass);
+                ItemCollected(Player.instance.pillBottleEmpty);
+                ItemCollected(Player.instance.glassMixed);
+                mixOnce = true;
+            }
         }
     }
 }

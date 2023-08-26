@@ -17,6 +17,10 @@ using UnityEditor.Rendering;
 public class Police : MonoBehaviour
 {
     /// <summary>
+    /// PoliceID for the player to access
+    /// </summary>
+    public int policeID;
+    /// <summary>
     /// Is the player in Police's range
     /// </summary>
     public bool inRange;
@@ -138,6 +142,8 @@ public class Police : MonoBehaviour
     IEnumerator Delayed()
     {
         Debug.Log("Delayed");
+        PlayerCanvas.instance.spaceToEscape.SetActive(false);
+        Player.instance.policeIDSelected = 0;
         cooldown = true;
         breakFree = false;
         escapeCount = 0;
@@ -162,10 +168,12 @@ public class Police : MonoBehaviour
     {
         Debug.Log("Captured");
         Player.instance.isCaught = true;
+        Player.instance.policeIDSelected = policeID;
         escapeCount = 0;
 
         while (breakFree != true)
         {
+            PlayerCanvas.instance.spaceToEscape.SetActive(true);
             if (escapeCount >= 10)
             {
                 Player.instance.isCaught = false;

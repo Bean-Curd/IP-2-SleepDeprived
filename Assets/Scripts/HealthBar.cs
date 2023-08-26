@@ -45,9 +45,9 @@ public class HealthBar : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        currentHealth = maxHealth; //Set health to 100
+        currentHealth = GameManager.gameManager.playerHealth;
         healthBar.maxValue = maxHealth;
-        healthBar.value = maxHealth;
+        healthBar.value = GameManager.gameManager.playerHealth;
     }
 
     /// <summary>
@@ -79,6 +79,8 @@ public class HealthBar : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GameManager.gameManager.playerHealth = currentHealth;
+
         if (currentHealth <= 10000)
         {
             healthText.text = "" + (currentHealth / 100); //Change the text to the number

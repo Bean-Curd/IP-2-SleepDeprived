@@ -15,4 +15,4 @@ MonoBehaviour:
   id: 3
   icon: {fileID: 21300000, guid: fa3bb7cd4412b93439bfb61c61a988b0, type: 3}
   selectedImage: {fileID: 21300000, guid: cebe175b8f96a6a4687a0d051b27e534, type: 3}
-  description: A neat clean package. You should take it to <>.
+  description: A neat clean package. You should take it to a neighbour.

@@ -10,6 +10,11 @@ using UnityEngine;
 
 public class DogTrigger : MonoBehaviour
 {
+    /// <summary>
+    /// To access the parent object
+    /// </summary>
+    public GameObject parent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,7 +29,7 @@ public class DogTrigger : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player") //If player in range
         {
-            Dog.instance.inRange = true;
+            parent.GetComponent<Dog>().inRange = true;
         }
     }
 
@@ -34,7 +39,7 @@ public class DogTrigger : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerExit(Collider collision)
     {
-        Dog.instance.inRange = false;
+        parent.GetComponent<Dog>().inRange = false;
     }
 
     // Update is called once per frame

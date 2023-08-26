@@ -31,7 +31,7 @@ public class StartMenu : MonoBehaviour
     public void ExitGame()
     {
         Application.Quit();
-        UnityEditor.EditorApplication.isPlaying = false; //So it works in play mode for testing
+        //UnityEditor.EditorApplication.isPlaying = false; //So it works in play mode for testing
     }
 
     // Update is called once per frame

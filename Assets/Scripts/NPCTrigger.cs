@@ -45,7 +45,10 @@ public class NPCTrigger : MonoBehaviour
     private void OnTriggerExit(Collider collision)
     {
         parent.GetComponent<NPC>().inRange = false;
-        parent.GetComponent<Minigame3>().isCaught = false;
+        if (parent.name == "NPC_smallchild2")
+        {
+            parent.GetComponent<Minigame3>().isCaught = false;
+        }
     }
 
     // Update is called once per frame

@@ -10,6 +10,11 @@ using UnityEngine;
 
 public class PoliceTrigger : MonoBehaviour
 {
+    /// <summary>
+    /// To access the parent object
+    /// </summary>
+    public GameObject parent;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,7 +29,7 @@ public class PoliceTrigger : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player") //If player in range
         {
-            Police.instance.inRange = true;
+            parent.GetComponent<Police>().inRange = true;
         }
     }
 
@@ -34,7 +39,7 @@ public class PoliceTrigger : MonoBehaviour
     /// <param name="collision"></param>
     private void OnTriggerExit(Collider collision)
     {
-        Police.instance.inRange = false;
+        parent.GetComponent<Police>().inRange = false;
     }
 
 

@@ -26,7 +26,7 @@ public class EnergyBar : MonoBehaviour
     /// <summary>
     /// For the player's energy
     /// </summary>
-    private int currentEnergy;
+    public int currentEnergy;
 
     /// <summary>
     /// Text for energy
@@ -41,7 +41,7 @@ public class EnergyBar : MonoBehaviour
     /// <summary>
     /// For the player's energy regeneration 
     /// </summary>
-    private Coroutine regen;
+    public Coroutine regen;
 
     /// <summary>
     /// Set the player's energy bar as an instance
@@ -78,10 +78,9 @@ public class EnergyBar : MonoBehaviour
             }
 
             regen = StartCoroutine(RegenEnergy());
-
         }
         else
-        {   
+        {
             Player.instance.moveSpeed = 3f; //Decrease movement speed if player can no longer sprint
         }
     }
@@ -89,18 +88,21 @@ public class EnergyBar : MonoBehaviour
     /// <summary>
     /// To regenerate energy when shift is not pressed
     /// </summary>
-    private IEnumerator RegenEnergy()
+    public IEnumerator RegenEnergy()
     {
-        yield return new WaitForSeconds(1); //Delay before energy is regenerated
-
-        while (currentEnergy < maxEnergy) //While not at max energy, restore energy by 2 (200 as in 2.00)
+        if (Player.instance.inDialogue != true)
         {
-            currentEnergy += 200;
-            energyBar.value = currentEnergy;
-            yield return regenTick;
-        }
+            yield return new WaitForSeconds(1); //Delay before energy is regenerated
 
-        regen = null; //Once done, reset so player can continue to regenerate energy
+            while (currentEnergy < maxEnergy) //While not at max energy, restore energy by 2 (200 as in 2.00)
+            {
+                currentEnergy += 200;
+                energyBar.value = currentEnergy;
+                yield return regenTick;
+            }
+
+            regen = null; //Once done, reset so player can continue to regenerate energy
+        }
     }
 
     // Update is called once per frame

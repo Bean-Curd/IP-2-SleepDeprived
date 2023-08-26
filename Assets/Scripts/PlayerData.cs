@@ -117,14 +117,6 @@ public class PlayerData : ScriptableObject //To store the player information
         /// </summary>
         public bool drink3;
         /// <summary>
-        /// Has the player delivered the 4th drink
-        /// </summary>
-        public bool drink4;
-        /// <summary>
-        /// Has the player delivered the 5th drink
-        /// </summary>
-        public bool drink5;
-        /// <summary>
         /// Has the player returned to the butchery after delivering all the water: Boy eating day4 dinner screen 
         /// </summary>
         public bool dinner4;
@@ -140,10 +132,6 @@ public class PlayerData : ScriptableObject //To store the player information
         /// Has the player obtained the glass (glass in inventory)
         /// </summary>
         public bool glass;
-        /// <summary>
-        /// Has the player given the glass+pills to the butcher: Boy leaves butcher to rest
-        /// </summary>
-        public bool gaveButcher;
     }
 
     // Start is called before the first frame update

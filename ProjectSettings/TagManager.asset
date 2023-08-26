@@ -11,6 +11,7 @@ TagManager:
   - Police
   - Spawn2
   - Spawn3
+  - Water
   layers:
   - Default
   - TransparentFX
